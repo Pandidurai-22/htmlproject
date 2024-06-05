@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Voice</title>
+</head>
+<body>
+    <div class="audio-recorder">
+        <button id="recordButton">Record</button>
+        <button id="stopButton" disabled>Stop</button>
+        <audio id="audioPreview" controls></audio>
+      </div>
+<style>
+    .audio-recorder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  #recordButton, #stopButton {
+    margin-bottom: 10px;
+  }
+  
+  #recordButton:disabled, #stopButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+</style>
+<script>
+    const recordButton = document.getElementById('recordButton');
+const stopButton = document.getElementById('stopButton');
+const audioPreview = document.getElementById('audioPreview');
+
+let mediaRecorder;
+let chunks = [];
+
+recordButton.addEventListener('click', startRecording);
+stopButton.addEventListener('click', stopRecording);
+
+function startRecording() {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function(e) {
+        chunks.push(e.data);
+      };
+      mediaRecorder.onstop = function() {
+        const blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+        chunks = [];
+        const audioURL = URL.createObjectURL(blob);
+        audioPreview.src = audioURL;
+      };
+      mediaRecorder.start();
+      recordButton.disabled = true;
+      stopButton.disabled = false;
+    })
+    .catch(function(err) {
+      console.error('Error recording audio: ', err);
+    });
+}
+
+function stopRecording() {
+  mediaRecorder.stop();
+  recordButton.disabled = false;
+  stopButton.disabled = true;
+}
+</script>
+</body>
+</html>
+  
